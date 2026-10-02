@@ -34,7 +34,7 @@ wheels = [
 ]
 
 [[package]]
-name = "nnapper"
+name = "naper"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
