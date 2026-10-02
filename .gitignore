@@ -1,0 +1,5 @@
+*.geojson
+*.txt
+*.pkl
+*.pyc
+*.pbf
