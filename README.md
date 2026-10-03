@@ -23,7 +23,7 @@ Ten projekt służy do parsowania danych lokalizacyjnych w formacie **NMEA** i w
 ## Struktura projektu
 
 ```text
-naper/
+nnaper/
 ├── data/
 │   ├── raw.txt          # Surowe logi NMEA z urządzenia GPS
 │   ├── state.txt        # Numer ostatnio przetworzonej linii z raw.txt
@@ -75,7 +75,7 @@ naper/
 1. Przygotowanie repozytorium:
    ```bash
    git clone https://github.com/Tryczyk/nnaper.git
-   cd naper
+   cd nnaper
    ```
 
 2. Przygotowanie danych OpenStreetMap:
