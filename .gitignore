@@ -3,9 +3,9 @@
 *.pkl
 *.pyc
 *.pbf
-*.html
 .env
 *.pmtiles
 *.gz
 *.zip
 geojsons/
+driven.html
