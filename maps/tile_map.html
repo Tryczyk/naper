@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <title>Naper - Studio Map Pomorskie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/pmtiles@2.11.0/dist/index.js"></script>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; background: #090d16; }
+    #map { width: 100%; height: 100%; }
+    
+    #menu {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: #f8fafc;
+      font-size: 13px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+      max-width: 280px;
+    }
+    #menu h4 {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 6px;
+    }
+    .item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .item input {
+      margin-right: 10px;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+    .color-bullet {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div id="menu">
+  <h4>Warstwy Mapy</h4>
+  <label class="item">
+    <input type="checkbox" id="t-cycle" checked />
+    <span class="color-bullet" style="background: #10b981;"></span> Drogi dla rowerów (zawsze)
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-pedestrian" checked />
+    <span class="color-bullet" style="background: #a855f7;"></span> Ciągi piesze / chodniki
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-dirt" checked />
+    <span class="color-bullet" style="background: #f59e0b;"></span> Drogi gruntowe (leśne / polne)
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-fast" checked />
+    <span class="color-bullet" style="background: #ef4444;"></span> Drogi powyżej 50 km/h
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-slow" checked />
+    <span class="color-bullet" style="background: #94a3b8;"></span> Drogi do 50 km/h (utwardzone)
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-rail" checked />
+    <span class="color-bullet" style="background: #cbd5e1; border: 1px dashed #475569;"></span> Kolej / tramwaje
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-buildings" checked />
+    <span class="color-bullet" style="background: #334155;"></span> Budynki
+  </label>
+  <label class="item">
+    <input type="checkbox" id="t-marine" checked />
+    <span class="color-bullet" style="background: #38bdf8; border: 1px dashed #fff;"></span> Szlaki morskie / promowe
+  </label>
+</div>
+
+<div id="map"></div>
+
+<script>
+  const protocol = new pmtiles.Protocol();
+  maplibregl.addProtocol("pmtiles", protocol.tile);
+
+  const map = new maplibregl.Map({
+    container: 'map',
+    center: [18.6466, 54.3520], // Gdańsk
+    zoom: 12.5,
+    minZoom: 9.5,
+    maxZoom: 18,
+    fadeDuration: 300,
+    maxBounds: [
+      [16.5, 53.4],
+      [19.8, 55.0]
+    ],
+    style: {
+      version: 8,
+      transition: {
+        duration: 300,
+        delay: 0
+      },
+      sources: {
+        'pomorskie-tiles': {
+          type: 'vector',
+          url: 'pmtiles://http://localhost:8080/geojsons/pomorskie.pmtiles'
+        }
+      },
+      layers: [
+        {
+          id: 'bg',
+          type: 'background',
+          paint: { 'background-color': '#090d16' }
+        },
+        // 1. ZBIORNIKI WODNE
+        {
+          id: 'l-water',
+          source: 'pomorskie-tiles',
+          'source-layer': 'water',
+          type: 'fill',
+          paint: { 'fill-color': '#0284c7', 'fill-opacity': 0.85 }
+        },
+        // 2. SZLAKI MORSKIE
+        {
+          id: 'l-marine',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: ['==', 'class', 'ferry'],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#38bdf8',
+            'line-width': 1.5,
+            'line-dasharray': [3, 2]
+          }
+        },
+        // 3. BUDYNKI
+        {
+          id: 'l-buildings',
+          source: 'pomorskie-tiles',
+          'source-layer': 'building',
+          type: 'fill',
+          paint: {
+            'fill-color': '#1e293b',
+            'fill-outline-color': '#273449',
+            'fill-opacity': [
+              'interpolate', ['exponential', 1.5], ['zoom'],
+              12.5, 0.0,
+              13.2, 0.3,
+              14.5, 0.95
+            ]
+          }
+        },
+        // 4. LINIE KOLEJOWE I TRAMWAJOWE (ODDZIELNA WARSTWA)
+        {
+          id: 'l-rail',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: ['in', 'class', 'rail', 'transit'],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#cbd5e1',
+            'line-width': [
+              'interpolate', ['linear'], ['zoom'],
+              10.0, 0.8,
+              13.0, 1.5,
+              16.0, 2.5
+            ],
+            'line-dasharray': [3, 2],
+            'line-opacity': [
+              'interpolate', ['linear'], ['zoom'],
+              9.5, 0.4,
+              11.0, 0.9
+            ]
+          }
+        },
+        // 5. DROGI DLA ROWERÓW
+        {
+          id: 'l-cycle',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: [
+            'any',
+            ['==', 'subclass', 'cycleway'],
+            ['==', 'class', 'cycleway'],
+            ['==', 'bicycle', 'designated']
+          ],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#10b981',
+            'line-width': [
+              'interpolate', ['linear'], ['zoom'],
+              9.5,  0.9,
+              12.0, 1.8,
+              15.0, 3.2,
+              17.0, 4.5
+            ],
+            'line-opacity': [
+              'interpolate', ['linear'], ['zoom'],
+              9.5,  0.55,
+              11.5, 0.95
+            ]
+          }
+        },
+        // 6. CIĄGI PIESZE
+        {
+          id: 'l-pedestrian',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: [
+            'all',
+            ['!=', 'subclass', 'cycleway'],
+            ['!=', 'class', 'cycleway'],
+            ['!=', 'bicycle', 'designated'],
+            ['!in', 'class', 'rail', 'transit'],
+            ['in', 'class', 'path', 'pedestrian', 'footway', 'steps']
+          ],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#a855f7',
+            'line-width': [
+              'interpolate', ['exponential', 1.4], ['zoom'],
+              11.8, 0.0,
+              12.4, 0.7,
+              14.0, 1.8,
+              17.0, 3.0
+            ],
+            'line-dasharray': [1.5, 1.5],
+            'line-opacity': [
+              'interpolate', ['exponential', 1.4], ['zoom'],
+              11.8, 0.0,
+              12.6, 0.35,
+              13.5, 0.9
+            ]
+          }
+        },
+        // 7. DROGI GRUNTOWE
+        {
+          id: 'l-dirt',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: [
+            'all',
+            ['!=', 'subclass', 'cycleway'],
+            ['!=', 'class', 'cycleway'],
+            ['!in', 'class', 'path', 'pedestrian', 'footway', 'steps', 'rail', 'transit'],
+            [
+              'any',
+              ['==', 'class', 'track'],
+              ['==', 'surface', 'unpaved']
+            ]
+          ],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#f59e0b',
+            'line-width': [
+              'interpolate', ['exponential', 1.3], ['zoom'],
+              10.0, 0.0,
+              11.0, 0.8,
+              13.0, 1.8,
+              17.0, 3.5
+            ],
+            'line-dasharray': [2, 1.5],
+            'line-opacity': [
+              'interpolate', ['exponential', 1.3], ['zoom'],
+              10.0, 0.0,
+              11.2, 0.4,
+              12.5, 0.85
+            ]
+          }
+        },
+        // 8. DROGI POWYŻEJ 50 KM/H
+        {
+          id: 'l-fast',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: [
+            'all',
+            ['!=', 'surface', 'unpaved'],
+            ['!in', 'class', 'track', 'path', 'pedestrian', 'footway', 'steps', 'cycleway', 'ferry', 'rail', 'transit'],
+            ['in', 'class', 'motorway', 'trunk', 'primary']
+          ],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#ef4444',
+            'line-width': [
+              'interpolate', ['linear'], ['zoom'],
+              9.5,  1.2,
+              13.0, 2.8,
+              17.0, 6.0
+            ]
+          }
+        },
+        // 9. DROGI DO 50 KM/H (WYKLUCZONA KOLEJ)
+        {
+          id: 'l-slow',
+          source: 'pomorskie-tiles',
+          'source-layer': 'transportation',
+          filter: [
+            'all',
+            ['!=', 'surface', 'unpaved'],
+            ['!in', 'class', 'track', 'path', 'pedestrian', 'footway', 'steps', 'cycleway', 'motorway', 'trunk', 'primary', 'ferry', 'rail', 'transit']
+          ],
+          type: 'line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#94a3b8',
+            'line-width': [
+              'interpolate', ['exponential', 1.3], ['zoom'],
+              9.8,  0.0,
+              10.8, 0.7,
+              13.0, 1.8,
+              17.0, 4.0
+            ],
+            'line-opacity': [
+              'interpolate', ['exponential', 1.3], ['zoom'],
+              9.8,  0.0,
+              10.8, 0.4,
+              12.0, 0.85
+            ]
+          }
+        }
+      ]
+    }
+  });
+
+  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+  const setupToggle = (checkboxId, layerId) => {
+    document.getElementById(checkboxId).addEventListener('change', (e) => {
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(layerId, 'visibility', e.target.checked ? 'visible' : 'none');
+      }
+    });
+  };
+
+  map.on('load', () => {
+    setupToggle('t-cycle', 'l-cycle');
+    setupToggle('t-pedestrian', 'l-pedestrian');
+    setupToggle('t-dirt', 'l-dirt');
+    setupToggle('t-fast', 'l-fast');
+    setupToggle('t-slow', 'l-slow');
+    setupToggle('t-rail', 'l-rail');
+    setupToggle('t-buildings', 'l-buildings');
+    setupToggle('t-marine', 'l-marine');
+  });
+</script>
+</body>
+</html>
