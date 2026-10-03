@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <title>Naper - Studio Map Pomorskie</title>
+  <title>Naper - Studio Map Pomorskie 3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
@@ -86,7 +86,7 @@
   </label>
   <label class="item">
     <input type="checkbox" id="t-buildings" checked />
-    <span class="color-bullet" style="background: #334155;"></span> Budynki
+    <span class="color-bullet" style="background: #334155;"></span> Budynki (3D)
   </label>
   <label class="item">
     <input type="checkbox" id="t-marine" checked />
@@ -103,9 +103,12 @@
   const map = new maplibregl.Map({
     container: 'map',
     center: [18.6466, 54.3520], // Gdańsk
-    zoom: 12.5,
+    zoom: 13,
     minZoom: 9.5,
     maxZoom: 18,
+    pitch: 58,                  // Kąt pochylenia kamery dla efektu 3D
+    bearing: -18,               // Lekki obrót widoku
+    maxPitch: 85,
     fadeDuration: 300,
     maxBounds: [
       [16.5, 53.4],
@@ -121,6 +124,15 @@
         'pomorskie-tiles': {
           type: 'vector',
           url: 'pmtiles://http://localhost:8080/geojsons/pomorskie.pmtiles'
+        },
+        // ŹRÓDŁO WYSOKOŚCI TERENU (DEM)
+        'terrain-dem': {
+          type: 'raster-dem',
+          tiles: [
+            'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          encoding: 'terrarium'
         }
       },
       layers: [
@@ -151,24 +163,25 @@
             'line-dasharray': [3, 2]
           }
         },
-        // 3. BUDYNKI
+        // 3. BUDYNKI 3D (fill-extrusion wyciągające bryły w górę)
         {
           id: 'l-buildings',
           source: 'pomorskie-tiles',
           'source-layer': 'building',
-          type: 'fill',
+          type: 'fill-extrusion',
+          minzoom: 12.5,
           paint: {
-            'fill-color': '#1e293b',
-            'fill-outline-color': '#273449',
-            'fill-opacity': [
-              'interpolate', ['exponential', 1.5], ['zoom'],
+            'fill-extrusion-color': '#1e293b',
+            'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 10],
+            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+            'fill-extrusion-opacity': [
+              'interpolate', ['linear'], ['zoom'],
               12.5, 0.0,
-              13.2, 0.3,
-              14.5, 0.95
+              13.5, 0.95
             ]
           }
         },
-        // 4. LINIE KOLEJOWE I TRAMWAJOWE (ODDZIELNA WARSTWA)
+        // 4. LINIE KOLEJOWE I TRAMWAJOWE
         {
           id: 'l-rail',
           source: 'pomorskie-tiles',
@@ -313,7 +326,7 @@
             ]
           }
         },
-        // 9. DROGI DO 50 KM/H (WYKLUCZONA KOLEJ)
+        // 9. DROGI DO 50 KM/H
         {
           id: 'l-slow',
           source: 'pomorskie-tiles',
@@ -346,7 +359,7 @@
     }
   });
 
-  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
   const setupToggle = (checkboxId, layerId) => {
     document.getElementById(checkboxId).addEventListener('change', (e) => {
@@ -357,6 +370,12 @@
   };
 
   map.on('load', () => {
+    // AKTYWACJA RZEŹBY TERENU 3D (exaggeration: 1.6 uwydatnia wzniesienia morenowe Trójmiasta i Kaszub)
+    map.setTerrain({
+      source: 'terrain-dem',
+      exaggeration: 1.6
+    });
+
     setupToggle('t-cycle', 'l-cycle');
     setupToggle('t-pedestrian', 'l-pedestrian');
     setupToggle('t-dirt', 'l-dirt');
