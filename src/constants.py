@@ -19,6 +19,9 @@ DRAWING_DRIVEN_MAPS_ENABLED = True
 # Map data
 GEOJSON_DIR_PATH = Path("geojsons")
 
+
+
+# TODO zmienić to aby użytkownik to w jakiś sposób zadawał
 OSM_FILE_PATH = GEOJSON_DIR_PATH / "pomorskie.osm.pbf"
 
 MAP_DIR_PATH = Path("maps")
