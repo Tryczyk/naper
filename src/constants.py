@@ -1,8 +1,11 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
+BASE_DIR = Path(__file__).resolve().parent.parent if Path(__file__).resolve().parent.name == "src" else Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
 
 # Input and state files
-
 DATA_DIR_PATH = Path("data")
 
 STATE_FILE_PATH = DATA_DIR_PATH / "state.txt"
@@ -18,15 +21,13 @@ DRAWING_DRIVEN_MAPS_ENABLED = True
 
 # Map data
 GEOJSON_DIR_PATH = Path("geojsons")
-
-
-
-# TODO zmienić to aby użytkownik to w jakiś sposób zadawał
-OSM_FILE_PATH = GEOJSON_DIR_PATH / "pomorskie.osm.pbf"
-
 MAP_DIR_PATH = Path("maps")
 
-OSM_FILE_NAME = OSM_FILE_PATH.stem.split(".")[0]
+OSM_PBF_FILENAME = os.getenv("OSM_FILE_NAME", "pomorskie.osm.pbf")
+
+OSM_FILE_PATH = GEOJSON_DIR_PATH / OSM_PBF_FILENAME
+
+OSM_FILE_NAME = Path(OSM_PBF_FILENAME).name.split(".")[0]
 
 # General map settings
 AVERAGE_ROAD_WIDTH = 6
@@ -39,7 +40,6 @@ ORANGE = [255, 165, 0]
 PALE_ORANGE = [255, 200, 100]
 FADED_BLUE = [135, 206, 235]
 DARK_GRAY = [80, 80, 80]
-
 
 MAP_LAYERS = {
     # "bodies_of_water": {
@@ -81,5 +81,3 @@ MAP_LAYERS = {
         "width": AVERAGE_ROAD_WIDTH * 3,
     },
 }
-
-
