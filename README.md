@@ -78,19 +78,26 @@ naper/
    cd naper
    ```
 
-2. Zmienne środowiskowe:
+2. Przygotowanie danych OpenStreetMap:
+   Pobierz przykładowy wyciąg danych w formacie `.osm.pbf` (np. dla województwa pomorskiego z serwisu [Geofabrik](https://download.geofabrik.de/europe/poland.html)) i umieść go w katalogu `geojsons/`.
+
+3. Konfiguracja zmiennych środowiskowych:
    Skopiuj wzorzec konfiguracji:
    ```bash
    cp .env.example .env
    ```
-   W pliku .env wskaż nazwę pliku PBF umieszczonego w data/geojson/:
+
+   W pliku `.env` wskaż nazwę pliku (np. pobranego z Geofabrik):
+   ```env
    OSM_FILE_NAME=pomorskie.osm.pbf
+   ```
 
-   Uwaga: Pliki .pbf, archiwa .pkl oraz duże logi raw.txt nie powinny być commitowane do repozytorium Git ze względu na swój rozmiar.
+   > **Uwaga:** Pliki `.pbf`, archiwa `.pkl`, wyjściowe mapy HTML oraz duże logi `raw.txt` nie powinny być commitowane do repozytorium Git ze względu na swój rozmiar.
 
-3. Uruchomienie:
-   Projekt wykorzystuje uv do automatycznego zarządzania środowiskiem i zależnościami:
+4. Uruchomienie projektu:
+   Projekt wykorzystuje narzędzie `uv` do automatycznego zarządzania środowiskiem wirtualnym i zależnościami:
    ```bash
    uv run src/main.py
    ```
-Po zakończeniu działania otwórz plik maps/driven.html w przeglądarce internetowej.
+
+   Po zakończeniu przetwarzania wygenerowana mapa zostanie zapisana w `maps/driven.html`. Otwórz ten plik w dowolnej przeglądarce internetowej.
