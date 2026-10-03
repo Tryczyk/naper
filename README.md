@@ -74,30 +74,43 @@ nnaper/
 
 1. Przygotowanie repozytorium:
    ```bash
-   git clone https://github.com/Tryczyk/nnaper.git
-   cd nnaper
+   git clone https://github.com/Tryczyk/naper.git
+   cd naper
    ```
 
-2. Przygotowanie danych OpenStreetMap:
-   Pobierz przykładowy wyciąg danych w formacie `.osm.pbf` (np. dla województwa pomorskiego z serwisu [Geofabrik](https://download.geofabrik.de/europe/poland.html)) i umieść go w katalogu `geojsons/`.
-
-3. Konfiguracja zmiennych środowiskowych:
+2. Konfiguracja zmiennych środowiskowych:
    Skopiuj wzorzec konfiguracji:
    ```bash
    cp .env.example .env
    ```
 
-   W pliku `.env` wskaż nazwę pliku (np. pobranego z Geofabrik):
+   W pliku `.env` wskaż nazwę pliku wyciągu regionalnego (np. pobranego z serwisu [Geofabrik](https://download.geofabrik.de/europe/poland.html), domyślnie `pomorskie.osm.pbf`):
    ```env
    OSM_FILE_NAME=pomorskie.osm.pbf
    ```
 
-   > **Uwaga:** Pliki `.pbf`, archiwa `.pkl`, wyjściowe mapy HTML oraz duże logi `raw.txt` nie powinny być commitowane do repozytorium Git ze względu na swój rozmiar.
+   > **Uwaga:** Pliki `.pbf`, `.pmtiles`, archiwa `.pkl`, wyjściowe mapy HTML oraz duże logi `raw.txt` nie powinny być commitowane do repozytorium Git ze względu na swój rozmiar.
 
-4. Uruchomienie projektu:
+3. Przetwarzanie danych lokalizacyjnych (Python):
    Projekt wykorzystuje narzędzie `uv` do automatycznego zarządzania środowiskiem wirtualnym i zależnościami:
    ```bash
    uv run src/main.py
    ```
 
-   Po zakończeniu przetwarzania wygenerowana mapa zostanie zapisana w `maps/driven.html`. Otwórz ten plik w dowolnej przeglądarce internetowej.
+   Skrypt przetwarza surowe logi NMEA z pliku `data/raw.txt` i generuje ślad przestrzenny w katalogu `geojsons/driven.geojson`.
+
+4. Generowanie kafelków wektorowych i podgląd mapy (.bat):
+   Skrypt `.bat` automatycznie weryfikuje konfigurację w `.env`, w razie potrzeby pobiera dane OSM z Geofabrik, generuje kafelki `.pmtiles` za pomocą narzędzia Planetiler w Dockerze oraz uruchamia lokalny serwer HTTP.
+
+   Uruchomienie skryptu w terminalu:
+   - **PowerShell / Terminal VS Code:**
+     ```powershell
+     .\generate_tiles.bat
+     ```
+   - **Wiersz poleceń (CMD):**
+     ```cmd
+     generate_tiles.bat
+     ```
+
+   Po uruchomieniu serwera otwórz mapę w przeglądarce pod adresem:
+   `http://localhost:8080/maps/tile_map.html`
