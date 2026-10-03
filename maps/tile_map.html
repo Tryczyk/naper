@@ -172,8 +172,14 @@
           minzoom: 12.5,
           paint: {
             'fill-extrusion-color': '#1e293b',
-            'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 10],
-            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+            // Wysokość budynku: jeśli brak w OSM, dajemy bezpieczne 7-10 metrów
+            'fill-extrusion-height': [
+              'interpolate', ['linear'], ['zoom'],
+              13, 0,
+              13.5, ['coalesce', ['get', 'render_height'], 8]
+            ],
+            // Twardo wymuszone 0 = stopa budynku ZAWSZE przyklejona do siatki 3D terenu
+            'fill-extrusion-base': 0,
             'fill-extrusion-opacity': [
               'interpolate', ['linear'], ['zoom'],
               12.5, 0.0,
@@ -372,8 +378,8 @@
   map.on('load', () => {
     // AKTYWACJA RZEŹBY TERENU 3D (exaggeration: 1.6 uwydatnia wzniesienia morenowe Trójmiasta i Kaszub)
     map.setTerrain({
-      source: 'terrain-dem',
-      exaggeration: 1.6
+    source: 'terrain-dem',
+    exaggeration: 1.0 // Zmień z 1.6 na 1.0 (przy 1.0 siatka idealnie styka się ze stopami budynków)
     });
 
     setupToggle('t-cycle', 'l-cycle');
