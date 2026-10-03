@@ -1,4 +1,4 @@
-# Napper 🗺️
+# Naper 🗺️
 
 Ten projekt służy do parsowania danych lokalizacyjnych w formacie **NMEA** i wizualizacji ich na interaktywnej mapie przy użyciu biblioteki **Lonboard**. Dodatkowo aplikacja przetwarza i wyświetla informacje przestrzenne z plików **PBF** (OpenStreetMap).
 
@@ -23,7 +23,7 @@ Ten projekt służy do parsowania danych lokalizacyjnych w formacie **NMEA** i w
 ## Struktura projektu
 
 ```text
-napper/
+naper/
 ├── data/
 │   ├── raw.txt          # Surowe logi NMEA z urządzenia GPS
 │   ├── state.txt        # Numer ostatnio przetworzonej linii z raw.txt
@@ -75,7 +75,7 @@ napper/
 1. Przygotowanie repozytorium:
    ```bash
    git clone https://github.com/Tryczyk/naper.git
-   cd napper
+   cd naper
    ```
 
 2. Zmienne środowiskowe:
