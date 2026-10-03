@@ -1,10 +1,12 @@
 [project]
-name = "naper"
+name = "nnaper"
 version = "0.1.0"
 description = ""
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "geopandas>=1.1.4",
+    "lonboard>=0.17.0",
     "python-dotenv>=1.2.4",
+    "shapely>=2.1.2",
 ]
