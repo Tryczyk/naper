@@ -5,3 +5,7 @@
 *.pbf
 *.html
 .env
+*.pmtiles
+*.gz
+*.zip
+geojsons/
